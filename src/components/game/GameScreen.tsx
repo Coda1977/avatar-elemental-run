@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Player, Element, GameStats, TouchAction } from "@/types/game";
 import { GameHUD } from "./GameHUD";
-import { TouchController } from "./TouchController";
-import { ElementalZone } from "./ElementalZone";
-import { ObstacleSystem } from "./ObstacleSystem";
+import { ScrollingBackground } from "./ScrollingBackground";
+import { SubwaySurfersMovement } from "./SubwaySurfersMovement";
+import { SubwaySurfersObstacles } from "./SubwaySurfersObstacles";
+import { GameInstructions } from "./GameInstructions";
 import { useToast } from "@/hooks/use-toast";
 import { playZoneMusic, playActionSound, playTokenCollected, playAvatarState, playObstacleHit, playCoinCollected } from "@/lib/audio";
 
@@ -37,12 +38,23 @@ export function GameScreen({ player, onGameOver }: GameScreenProps) {
   const [currentElement, setCurrentElement] = useState<Element>('air');
   const [gameSpeed, setGameSpeed] = useState(1);
   const [lastAction, setLastAction] = useState<TouchAction | null>(null);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [playerLane, setPlayerLane] = useState<'left' | 'center' | 'right'>('center');
+  const [playerState, setPlayerState] = useState<'running' | 'jumping' | 'rolling' | 'sliding'>('running');
   const gameLoopRef = useRef<number>();
   const lastElementSwitch = useRef(Date.now());
   const avatarStateTimeoutRef = useRef<NodeJS.Timeout>();
 
+  const handleStartGame = () => {
+    setShowInstructions(false);
+    setGameStarted(true);
+  };
+
   // Game loop
   useEffect(() => {
+    if (!gameStarted) return;
+    
     const gameLoop = () => {
       setGameStats(prev => {
         const newDistance = prev.distance + gameSpeed;
@@ -86,21 +98,32 @@ export function GameScreen({ player, onGameOver }: GameScreenProps) {
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [currentElement, gameSpeed, toast]);
+  }, [currentElement, gameSpeed, toast, gameStarted]);
 
   const handleTouchAction = (action: TouchAction) => {
     setLastAction(action);
-    console.log(`Touch action: ${action} in ${currentElement} zone`);
+    
+    // Update player state based on action
+    switch (action) {
+      case 'swipe-up':
+        setPlayerState('jumping');
+        setTimeout(() => setPlayerState('running'), 800);
+        break;
+      case 'swipe-down':
+        setPlayerState('rolling');
+        setTimeout(() => setPlayerState('running'), 600);
+        break;
+      case 'tap-hold':
+        setPlayerState('sliding');
+        setTimeout(() => setPlayerState('running'), 1000);
+        break;
+      case 'double-tap':
+        // Fire blast effect
+        break;
+    }
     
     // Play action sound
     playActionSound(action, currentElement);
-    
-    // Simple feedback for now
-    toast({
-      title: `${action.replace('-', ' ').toUpperCase()}!`,
-      description: `Used ${currentElement} bending`,
-      duration: 800,
-    });
     
     // Clear action after a short delay
     setTimeout(() => setLastAction(null), 500);
@@ -187,66 +210,68 @@ export function GameScreen({ player, onGameOver }: GameScreenProps) {
   }, []);
 
   return (
-    <div className="relative h-screen w-full overflow-hidden">
-      <ElementalZone element={currentElement} />
+    <div className="relative h-screen w-full overflow-hidden bg-gray-900">
+      {/* Scrolling Background */}
+      <ScrollingBackground element={currentElement} gameSpeed={gameSpeed} />
       
-      <ObstacleSystem
-        currentElement={currentElement}
-        gameSpeed={gameSpeed}
-        avatarStateActive={gameStats.avatarStateActive}
-        onObstacleHit={takeDamage}
-        onTokenCollected={collectToken}
-        onCoinCollected={collectCoin}
-        lastAction={lastAction}
-        gameStats={gameStats}
-      />
-      
+      {/* Game HUD */}
       <GameHUD 
         player={player} 
         stats={gameStats} 
         currentElement={currentElement}
       />
       
-      <TouchController onTouchAction={handleTouchAction} />
-      
-      {/* Character with Avatar State glow effect and action feedback */}
-      <div className="absolute bottom-32 left-1/2 transform -translate-x-1/2 z-20">
-        <div 
-          className={`w-16 h-16 rounded-full animate-float shadow-lg transition-all duration-300 ${
-            gameStats.avatarStateActive 
-              ? 'bg-gradient-to-r from-air-primary via-water-primary to-fire-primary animate-pulse-glow shadow-glow-fire scale-110' 
-              : lastAction 
-                ? `bg-gradient-to-r ${
-                    lastAction === 'swipe-up' ? 'from-air-primary to-air-secondary scale-110 -translate-y-4' :
-                    lastAction === 'swipe-down' ? 'from-water-primary to-water-secondary scale-90 translate-y-2' :
-                    lastAction === 'tap-hold' ? 'from-earth-primary to-earth-secondary scale-125' :
-                    'from-fire-primary to-fire-secondary scale-105 animate-pulse-glow'
-                  }`
-                : 'bg-gradient-to-r from-air-primary to-water-primary'
-          }`}
-        >
-          {gameStats.avatarStateActive && (
-            <div className="absolute inset-0 rounded-full bg-white/20 animate-ping" />
-          )}
+      {gameStarted && (
+        <>
+          {/* Subway Surfers Style Movement System */}
+          <SubwaySurfersMovement
+            player={player}
+            currentElement={currentElement}
+            avatarStateActive={gameStats.avatarStateActive}
+            onTouchAction={handleTouchAction}
+            lastAction={lastAction}
+            onLaneChange={setPlayerLane}
+            onStateChange={setPlayerState}
+          />
           
-          {/* Action visual effect */}
-          {lastAction && !gameStats.avatarStateActive && (
-            <div className={`absolute inset-0 rounded-full animate-ping ${
-              lastAction === 'swipe-up' ? 'bg-air-primary/50' :
-              lastAction === 'swipe-down' ? 'bg-water-primary/50' :
-              lastAction === 'tap-hold' ? 'bg-earth-primary/50' :
-              'bg-fire-primary/50'
-            }`} />
-          )}
-        </div>
-      </div>
+          {/* Obstacles and Collectibles */}
+          <SubwaySurfersObstacles
+            currentElement={currentElement}
+            gameSpeed={gameSpeed}
+            avatarStateActive={gameStats.avatarStateActive}
+            onObstacleHit={takeDamage}
+            onTokenCollected={collectToken}
+            onCoinCollected={collectCoin}
+            playerLane={playerLane}
+            playerState={playerState}
+          />
+        </>
+      )}
 
-      {/* Avatar State indicator */}
+      {/* Avatar State Full Screen Effect */}
       {gameStats.avatarStateActive && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-25 pointer-events-none">
-          <div className="text-6xl font-bold bg-gradient-to-r from-air-primary via-water-primary to-fire-primary bg-clip-text text-transparent animate-pulse-glow">
-            AVATAR STATE
+        <div className="absolute inset-0 z-40 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-r from-air-primary/10 via-water-primary/10 to-fire-primary/10 animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="text-6xl sm:text-8xl font-bold bg-gradient-to-r from-air-primary via-water-primary to-fire-primary bg-clip-text text-transparent animate-pulse-glow text-center">
+              AVATAR STATE
+            </div>
+            <div className="text-center text-white mt-4 text-xl animate-bounce">
+              INVINCIBLE!
+            </div>
           </div>
+        </div>
+      )}
+
+      {/* Game Instructions Overlay */}
+      {showInstructions && (
+        <GameInstructions onClose={handleStartGame} />
+      )}
+
+      {/* Speed indicator */}
+      {gameStarted && (
+        <div className="absolute top-20 right-4 z-30 bg-black/50 text-white px-3 py-1 rounded text-sm">
+          Speed: {gameSpeed.toFixed(1)}x
         </div>
       )}
     </div>
