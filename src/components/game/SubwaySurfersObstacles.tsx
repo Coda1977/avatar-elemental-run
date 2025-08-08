@@ -238,6 +238,23 @@ export function SubwaySurfersObstacles({
 
   return (
     <div className="absolute inset-0 pointer-events-none">
+      {/* DEBUG: Test obstacle that should always be visible */}
+      <div
+        className="absolute bg-red-500 rounded-lg border-4 border-white shadow-lg animate-pulse"
+        style={{
+          left: '50%',
+          transform: 'translateX(-50%)',
+          top: '100px',
+          width: '80px',
+          height: '80px',
+          zIndex: 50
+        }}
+      >
+        <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-xs">
+          TEST
+        </div>
+      </div>
+
       {/* Render obstacles */}
       {obstacles.map(obstacle => (
         <div
@@ -298,6 +315,14 @@ export function SubwaySurfersObstacles({
           </div>
         )
       ))}
+
+      {/* DEBUG: Show obstacle count */}
+      <div className="absolute top-4 left-4 bg-black/80 text-white p-2 rounded text-sm z-50">
+        Active Obstacles: {obstacles.length}<br/>
+        Active Collectibles: {collectibles.length}<br/>
+        Player Lane: {playerLane}<br/>
+        Player State: {playerState}
+      </div>
 
       {/* Lane dividers for visual clarity */}
       <div className="absolute inset-0 pointer-events-none">
