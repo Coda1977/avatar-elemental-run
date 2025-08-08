@@ -72,8 +72,8 @@ export function SubwaySurfersObstacles({
     const spawnItems = () => {
       const now = Date.now();
       
-      // Spawn obstacles less frequently but more strategically
-      if (Math.random() < 0.3) {
+      // DEBUG: Always spawn obstacles for immediate testing
+      if (true) {
         const obstacleType = Math.random() < 0.4 ? 'train' : 
                            Math.random() < 0.6 ? 'barrier' : 
                            Math.random() < 0.8 ? 'low-barrier' : 'tunnel';
@@ -85,7 +85,7 @@ export function SubwaySurfersObstacles({
           id: `obstacle-${now}-${Math.random()}`,
           type: obstacleType as 'train' | 'barrier' | 'low-barrier' | 'tunnel',
           lane: randomLane,
-          position: -100, // Start above screen
+          position: 0, // Start at top of screen
           width: config.width,
           height: config.height,
           canJump: config.canJump,
@@ -93,7 +93,10 @@ export function SubwaySurfersObstacles({
           element: currentElement
         };
 
-        setObstacles(prev => [...prev, newObstacle]);
+        setObstacles(prev => {
+          console.log('Spawning obstacle:', newObstacle.type, 'in lane:', newObstacle.lane, 'at position:', newObstacle.position);
+          return [...prev, newObstacle];
+        });
       }
 
       // Spawn collectibles more frequently
@@ -105,7 +108,7 @@ export function SubwaySurfersObstacles({
           id: `collectible-${now}-${Math.random()}`,
           type: collectibleType,
           lane: randomLane,
-          position: -50,
+          position: 0,
           element: collectibleType === 'token' ? currentElement : undefined,
           collected: false
         };
@@ -114,7 +117,7 @@ export function SubwaySurfersObstacles({
       }
     };
 
-    spawnTimerRef.current = setInterval(spawnItems, Math.max(1000 - gameSpeed * 50, 400));
+    spawnTimerRef.current = setInterval(spawnItems, Math.max(500 - gameSpeed * 20, 200));
 
     return () => {
       if (spawnTimerRef.current) clearInterval(spawnTimerRef.current);
@@ -131,7 +134,7 @@ export function SubwaySurfersObstacles({
           ...obstacle,
           position: obstacle.position + moveSpeed
         }))
-        .filter(obstacle => obstacle.position < window.innerHeight + 200)
+        .filter(obstacle => obstacle.position < window.innerHeight + 200 && obstacle.position > -200)
       );
 
       setCollectibles(prev => prev
@@ -153,17 +156,18 @@ export function SubwaySurfersObstacles({
   // Collision detection
   useEffect(() => {
     const checkCollisions = () => {
-      const playerY = window.innerHeight - 200; // Player's Y position
+      const playerY = window.innerHeight - 160; // Player's Y position (bottom-40 = 160px from bottom)
       const playerWidth = 64;
       const playerHeight = 80;
 
       // Check obstacle collisions
       obstacles.forEach(obstacle => {
-        const obstacleY = window.innerHeight - obstacle.position;
+        const obstacleY = obstacle.position;
         
         // Check if obstacle is in player's lane and collision range
         if (obstacle.lane === playerLane && 
-            Math.abs(obstacleY - playerY) < (obstacle.height + playerHeight) / 2) {
+            obstacleY + obstacle.height > playerY && 
+            obstacleY < playerY + playerHeight) {
           
           let collision = true;
 
@@ -189,11 +193,12 @@ export function SubwaySurfersObstacles({
 
       // Check collectible collisions
       collectibles.forEach(collectible => {
-        const collectibleY = window.innerHeight - collectible.position;
+        const collectibleY = collectible.position;
         
         if (collectible.lane === playerLane && 
             !collectible.collected &&
-            Math.abs(collectibleY - playerY) < 60) {
+            collectibleY + 40 > playerY && 
+            collectibleY < playerY + playerHeight) {
           
           if (collectible.type === 'coin') {
             onCoinCollected();
@@ -241,7 +246,7 @@ export function SubwaySurfersObstacles({
           style={{
             left: `${lanePositions[obstacle.lane]}%`,
             transform: 'translateX(-50%)',
-            bottom: `${obstacle.position}px`,
+            top: `${obstacle.position}px`,
             width: `${obstacle.width}px`,
             height: `${obstacle.height}px`,
             zIndex: 15
@@ -278,7 +283,7 @@ export function SubwaySurfersObstacles({
             style={{
               left: `${lanePositions[collectible.lane]}%`,
               transform: 'translateX(-50%)',
-              bottom: `${collectible.position}px`,
+              top: `${collectible.position}px`,
               zIndex: 16
             }}
           >
