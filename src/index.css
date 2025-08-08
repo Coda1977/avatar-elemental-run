@@ -2,41 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Four Elements Run Design System - Avatar Inspired */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
+    /* Core UI Colors */
+    --background: 240 30% 4%;
+    --foreground: 210 40% 98%;
+    --card: 240 20% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 240 20% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 240 30% 4%;
+    --secondary: 240 10% 15%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 10% 15%;
+    --muted-foreground: 210 20% 65%;
+    --accent: 240 10% 20%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 75% 50%;
     --destructive-foreground: 210 40% 98%;
+    --border: 240 10% 20%;
+    --input: 240 10% 15%;
+    --ring: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Element Colors - Air (Light Blues, Whites) */
+    --air-primary: 200 100% 85%;
+    --air-secondary: 210 60% 95%;
+    --air-accent: 190 80% 70%;
+    --air-gradient: linear-gradient(135deg, hsl(200 100% 85%), hsl(210 60% 95%));
 
-    --radius: 0.5rem;
+    /* Element Colors - Water (Deep Blues, Teals) */
+    --water-primary: 195 100% 35%;
+    --water-secondary: 205 100% 45%;
+    --water-accent: 185 85% 50%;
+    --water-gradient: linear-gradient(135deg, hsl(195 100% 35%), hsl(185 85% 50%));
+
+    /* Element Colors - Earth (Greens, Browns) */
+    --earth-primary: 120 40% 45%;
+    --earth-secondary: 35 60% 60%;
+    --earth-accent: 85 60% 40%;
+    --earth-gradient: linear-gradient(135deg, hsl(120 40% 45%), hsl(85 60% 40%));
+
+    /* Element Colors - Fire (Reds, Oranges, Yellows) */
+    --fire-primary: 15 100% 50%;
+    --fire-secondary: 25 100% 55%;
+    --fire-accent: 45 100% 60%;
+    --fire-gradient: linear-gradient(135deg, hsl(15 100% 50%), hsl(45 100% 60%));
+
+    /* Game UI Elements */
+    --health-full: 0 100% 60%;
+    --health-half: 35 100% 55%;
+    --health-low: 15 100% 50%;
+    
+    /* Shadows and Effects */
+    --glow-air: 0 0 30px hsl(200 100% 85% / 0.5);
+    --glow-water: 0 0 30px hsl(195 100% 35% / 0.5);
+    --glow-earth: 0 0 30px hsl(120 40% 45% / 0.5);
+    --glow-fire: 0 0 30px hsl(15 100% 50% / 0.5);
+
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
