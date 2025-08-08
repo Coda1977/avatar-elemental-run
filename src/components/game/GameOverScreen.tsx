@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Player, GameStats } from "@/types/game";
-import { Trophy, RotateCcw, Home, Star } from "lucide-react";
+import { Trophy, RotateCcw, Home, Star, Crown } from "lucide-react";
+import { updateLeaderboard, getPlayerRankings } from "@/lib/leaderboard";
+import { playGameOver } from "@/lib/audio";
+import { useEffect, useState } from "react";
 
 interface GameOverScreenProps {
   player: Player;
@@ -13,6 +17,24 @@ interface GameOverScreenProps {
 export function GameOverScreen({ player, stats, onRestart, onBackToMenu }: GameOverScreenProps) {
   const totalTokens = stats.airTokens + stats.waterTokens + stats.earthTokens + stats.fireTokens;
   const avatarStateReached = stats.avatarStateActive || totalTokens >= 4;
+  const [rankings, setRankings] = useState<ReturnType<typeof getPlayerRankings>>([]);
+  const [isNewRecord, setIsNewRecord] = useState(false);
+
+  useEffect(() => {
+    // Play game over sound
+    playGameOver();
+    
+    // Update leaderboard with current run
+    const leaderboard = updateLeaderboard(player, stats);
+    const newRankings = getPlayerRankings();
+    setRankings(newRankings);
+    
+    // Check if this is a new personal record
+    if (leaderboard[player.name]) {
+      const playerData = leaderboard[player.name];
+      setIsNewRecord(stats.score === playerData.bestScore || stats.distance === playerData.bestDistance);
+    }
+  }, [player, stats]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -70,6 +92,24 @@ export function GameOverScreen({ player, stats, onRestart, onBackToMenu }: GameO
               </div>
             </div>
 
+            <div className="bg-secondary/50 rounded-lg p-3">
+              <p className="text-sm text-muted-foreground">Coins Collected</p>
+              <p className="text-lg font-bold text-yellow-400">{stats.coins} ¥</p>
+            </div>
+
+            {isNewRecord && (
+              <div className="bg-gradient-to-r from-yellow-400/20 to-orange-400/20 rounded-lg p-4 border border-yellow-400/30">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Crown className="w-5 h-5 text-yellow-400" />
+                  <span className="font-bold text-foreground">New Personal Record!</span>
+                  <Crown className="w-5 h-5 text-yellow-400" />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  You've achieved a new best score or distance!
+                </p>
+              </div>
+            )}
+
             {avatarStateReached && (
               <div className="bg-gradient-to-r from-air-primary/20 via-water-primary/20 to-fire-primary/20 rounded-lg p-4 border border-air-primary/30">
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -83,6 +123,41 @@ export function GameOverScreen({ player, stats, onRestart, onBackToMenu }: GameO
               </div>
             )}
           </div>
+
+          {rankings.length > 0 && (
+            <div className="bg-secondary/30 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Trophy className="w-4 h-4 text-yellow-400" />
+                <h3 className="text-sm font-medium text-foreground">Family Leaderboard</h3>
+              </div>
+              <div className="space-y-2">
+                {rankings.slice(0, 3).map((ranking, index) => (
+                  <div key={ranking.name} className={`flex items-center justify-between p-2 rounded ${
+                    ranking.name === player.name ? 'bg-air-primary/20 border border-air-primary/30' : 'bg-secondary/20'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        index === 0 ? 'bg-yellow-400 text-yellow-900' :
+                        index === 1 ? 'bg-gray-300 text-gray-800' :
+                        'bg-orange-400 text-orange-900'
+                      }`}>
+                        {index + 1}
+                      </span>
+                      <span className={`text-sm font-medium ${
+                        ranking.name === player.name ? 'text-air-primary' : 'text-foreground'
+                      }`}>
+                        {ranking.name}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-foreground">{ranking.bestScore}</p>
+                      <p className="text-xs text-muted-foreground">{Math.floor(ranking.bestDistance)}m</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <Button 

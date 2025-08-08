@@ -28,6 +28,13 @@ const particleStyles = {
   fire: 'bg-fire-accent'
 };
 
+const elementAnimations = {
+  air: 'animate-float',
+  water: 'animate-pulse-glow',
+  earth: 'animate-bounce',
+  fire: 'animate-pulse-glow'
+};
+
 export function ElementalZone({ element }: ElementalZoneProps) {
   const style = zoneStyles[element];
   const particleStyle = particleStyles[element];
@@ -47,15 +54,16 @@ export function ElementalZone({ element }: ElementalZoneProps) {
     >
       {/* Animated particles */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(30)].map((_, i) => (
           <div
             key={i}
-            className={`absolute w-2 h-2 ${particleStyle} rounded-full opacity-60`}
+            className={`absolute w-1 h-1 ${particleStyle} rounded-full opacity-60 ${elementAnimations[element]}`}
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${3 + Math.random() * 2}s`
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${2 + Math.random() * 3}s`,
+              transform: `scale(${0.5 + Math.random() * 1.5})`
             }}
           />
         ))}
@@ -66,28 +74,100 @@ export function ElementalZone({ element }: ElementalZoneProps) {
       
       {/* Zone-specific effects */}
       {element === 'air' && (
-        <div className="absolute inset-0 animate-float">
-          <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-air-accent/20 rounded-full blur-xl animate-pulse-glow" />
-          <div className="absolute top-1/2 right-1/4 w-24 h-24 bg-air-primary/30 rounded-full blur-lg animate-float" />
+        <div className="absolute inset-0">
+          {/* Floating clouds */}
+          <div className="absolute top-1/4 left-1/4 w-40 h-20 bg-air-secondary/30 rounded-full blur-xl animate-float" />
+          <div className="absolute top-1/2 right-1/3 w-32 h-16 bg-air-primary/20 rounded-full blur-lg animate-float" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/3 left-1/2 w-24 h-12 bg-air-accent/25 rounded-full blur-md animate-float" style={{ animationDelay: '2s' }} />
+          {/* Wind streaks */}
+          {[...Array(5)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute h-px bg-air-primary/40 animate-slide-in"
+              style={{
+                width: `${50 + Math.random() * 100}px`,
+                top: `${20 + Math.random() * 60}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`
+              }}
+            />
+          ))}
         </div>
       )}
       
       {element === 'water' && (
         <div className="absolute inset-0">
-          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-water-primary/30 to-transparent animate-pulse-glow" />
+          {/* Water waves */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-water-primary/40 to-transparent animate-pulse-glow" />
+          <div className="absolute bottom-1/4 left-0 right-0 h-1/4 bg-gradient-to-t from-water-secondary/30 to-transparent animate-pulse-glow" style={{ animationDelay: '0.5s' }} />
+          {/* Ice crystals */}
+          {[...Array(8)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute w-4 h-4 bg-water-accent/60 transform rotate-45 animate-float"
+              style={{
+                top: `${10 + Math.random() * 80}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 4}s`,
+                clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)'
+              }}
+            />
+          ))}
         </div>
       )}
       
       {element === 'earth' && (
         <div className="absolute inset-0">
-          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-earth-primary/40 to-transparent" />
+          {/* Ground layer */}
+          <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-earth-primary/50 to-transparent" />
+          {/* Mountain silhouettes */}
+          <div className="absolute bottom-1/4 left-0 w-full h-1/3 opacity-30">
+            <div className="absolute bottom-0 left-0 w-1/4 h-full bg-earth-secondary/60" style={{ clipPath: 'polygon(0% 100%, 50% 0%, 100% 100%)' }} />
+            <div className="absolute bottom-0 left-1/5 w-1/3 h-3/4 bg-earth-primary/50" style={{ clipPath: 'polygon(0% 100%, 40% 20%, 100% 100%)' }} />
+            <div className="absolute bottom-0 right-0 w-1/4 h-full bg-earth-accent/40" style={{ clipPath: 'polygon(0% 100%, 60% 10%, 100% 100%)' }} />
+          </div>
+          {/* Rock debris */}
+          {[...Array(6)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute bg-earth-secondary/50 animate-bounce"
+              style={{
+                width: `${8 + Math.random() * 12}px`,
+                height: `${8 + Math.random() * 12}px`,
+                top: `${20 + Math.random() * 60}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                borderRadius: `${Math.random() * 50}%`
+              }}
+            />
+          ))}
         </div>
       )}
       
       {element === 'fire' && (
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-fire-accent/10 animate-pulse-glow" />
-          <div className="absolute bottom-1/4 left-1/3 w-16 h-16 bg-fire-primary/50 rounded-full blur-lg animate-float" />
+          {/* Fire glow */}
+          <div className="absolute inset-0 bg-fire-primary/5 animate-pulse-glow" />
+          <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-fire-secondary/30 to-transparent animate-pulse-glow" />
+          {/* Lava pools */}
+          <div className="absolute bottom-1/4 left-1/4 w-20 h-8 bg-fire-primary/60 rounded-full blur-sm animate-pulse-glow" />
+          <div className="absolute bottom-1/3 right-1/3 w-16 h-6 bg-fire-accent/50 rounded-full blur-sm animate-pulse-glow" style={{ animationDelay: '1s' }} />
+          {/* Fire sparks */}
+          {[...Array(12)].map((_, i) => (
+            <div 
+              key={i}
+              className="absolute w-1 h-1 bg-fire-accent rounded-full animate-float"
+              style={{
+                top: `${30 + Math.random() * 60}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 3}s`,
+                opacity: Math.random() * 0.8 + 0.2
+              }}
+            />
+          ))}
+          {/* Volcanic peaks */}
+          <div className="absolute bottom-0 left-1/5 w-32 h-48 opacity-20 bg-fire-primary/40" style={{ clipPath: 'polygon(0% 100%, 20% 0%, 80% 0%, 100% 100%)' }} />
+          <div className="absolute bottom-0 right-1/4 w-28 h-40 opacity-15 bg-fire-secondary/30" style={{ clipPath: 'polygon(0% 100%, 30% 10%, 70% 10%, 100% 100%)' }} />
         </div>
       )}
     </div>
